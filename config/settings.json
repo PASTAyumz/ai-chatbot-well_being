@@ -1,0 +1,9 @@
+{
+    "microphone_device": 16,
+    "default_language": "en",
+    "voice_enabled": true,
+    "max_conversation_history": 50,
+    "crisis_mode_enabled": true,
+    "debug_mode": true
+}
+

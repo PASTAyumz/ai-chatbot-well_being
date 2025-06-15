@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Well-being Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<!-- Google Material Icons for menu toggle and discard icon -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  /* Import pixel style font - using 'Press Start 2P' from Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: #446856; /* soft green background */
+    color: #1e2a1f;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative; /* Needed for video z-index */
+    overflow-x: hidden; /* Prevent horizontal scroll due to sidebar animation */
+  }
+
+  /* Video Background */
+  #video-background {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    background-size: cover;
+    overflow: hidden; /* Ensure anything outside the bounds is hidden */
+    object-fit: cover;
+    transform: scale(1.1); /* Increased zoom to crop out more of the edges, hiding watermarks/text */
+  }
+
+  /* Video Overlay to soften background */
+  #video-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(53, 87, 57, 0.5); /* Semi-transparent dark green overlay */
+    z-index: 0; /* Place above video but below other content */
+  }
+
+  /* Responsive container layout */
+  main {
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    transition: margin-left 0.3s ease; /* Smooth transition for content when sidebar opens */
+  }
+
+  /* When sidebar open on desktop: push main content */
+  main.sidebar-open {
+    margin-left: 320px;
+  }
+
+  .chatbot-container {
+    background: #7a9b85; /* pixel green */
+    border: 4px solid #355739; /* pixel dark green border */
+    border-radius: 8px;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    box-shadow:
+      4px 4px 0 #294229,
+      inset 2px 2px 0 #a1b49d;
+    min-height: 500px; /* Ensure a minimum height for the chat area */
+  }
+
+  /* Header */
+  header {
+    background: #355739;
+    color: #c5d3b0;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 4px solid #294229;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Press Start 2P', cursive;
+    position: relative;
+    z-index: 1001; /* Ensure header is above main content but below modal */
+  }
+  header .logo {
+    font-weight: bold;
+    font-family: 'Press Start 2P', cursive;
+  }
+  header .menu-container {
+    position: relative;
+  }
+
+  /* New Menu Toggle Button for Sidebar */
+  .menu-toggle-btn {
+    border: 4px solid #355739;
+    background: #dada98;
+    color: #23341c;
+    cursor: pointer;
+    font-family: 'Material Icons';
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    transition: background 0.3s ease;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    border-radius: 4px;
+  }
+  .menu-toggle-btn:hover,
+  .menu-toggle-btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+
+  /* Conversation Sidebar Panel: Pixel Art Style */
+  #conversation-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 320px;
+    height: 100vh;
+    background: #7a9b85; /* pixel green background */
+    border-right: 4px solid #294229; /* thick pixel border */
+    display: flex;
+    flex-direction: column;
+    z-index: 1100; /* Higher z-index to overlay content */
+    transform: translateX(-100%); /* Start off-screen to the left */
+    transition: transform 0.15s steps(1, start); /* Pixel-art style instant transition */
+    font-family: 'Press Start 2P', cursive;
+    box-shadow:
+      4px 4px 0 #294229,
+      inset 2px 2px 0 #a1b49d;
+  }
+  #conversation-sidebar.open {
+    transform: translateX(0); /* Slide in */
+  }
+
+  /* When sidebar is open, darken main content */
+  .main-content-area.sidebar-open {
+    filter: brightness(0.5); /* Dim the main content */
+    pointer-events: none; /* Disable interaction with main content */
+  }
+
+  /* Sidebar header with pixel style */
+  #sidebar-header {
+    padding: 16px;
+    background: #355739;
+    border-bottom: 4px solid #294229;
+    font-weight: 700;
+    font-size: 12px;
+    color: #c5d3b0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: inset 2px 2px 0 #a1b49d;
+  }
+  #sidebar-close-btn {
+    border: 4px solid #355739;
+    background: #dada98;
+    color: #23341c;
+    font-family: 'Material Icons'; /* For close icon */
+    font-size: 24px;
+    cursor: pointer;
+    padding: 2px 6px;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  #sidebar-close-btn:hover,
+  #sidebar-close-btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+
+  /* Search input styled pixel */
+  #sidebar-search {
+    padding: 12px 16px;
+    border-bottom: 4px solid #294229;
+    background: #759a7b; /* slightly lighter pixel green for search area */
+    box-shadow: inset 2px 2px 0 #a1b49d;
+  }
+  #sidebar-search input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 4px solid #355739;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    color: #23341c;
+    background: #dada98;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    transition: background 0.3s ease;
+  }
+  #sidebar-search input::placeholder {
+    color: #5a6a48; /* Muted placeholder color */
+  }
+  #sidebar-search input:focus {
+    outline: none;
+    background: #c4c07e;
+    box-shadow:
+      inset 2px 2px 0 #fafad2,
+      0 0 0 2px #294229; /* Outer pixel border on focus */
+  }
+
+  /* Conversation List */
+  #conversation-list {
+    flex: 1; /* Takes remaining space */
+    overflow-y: auto;
+    padding: 12px 16px;
+    scrollbar-width: thin; /* Firefox scrollbar */
+    scrollbar-color: #294229 #7a9b85; /* Firefox scrollbar colors */
+  }
+  /* Webkit scrollbar styles */
+  #conversation-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  #conversation-list::-webkit-scrollbar-thumb {
+    background-color: #294229;
+  }
+  #conversation-list::-webkit-scrollbar-track {
+    background-color: #7a9b85;
+  }
+
+  /* Conversation items as pixel cards */
+  .conversation-item {
+    background: #dada98; /* Light yellowish background */
+    border: 4px solid #355739;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    box-shadow:
+      4px 4px 0 #294229,
+      inset 2px 2px 0 #fafad2;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    line-height: 1.2;
+    color: #23341c;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.2s ease;
+    width: 100%; /* Ensure full width button */
+    text-align: left; /* Align text to left */
+    position: relative; /* Needed for positioning discard button */
+  }
+  .conversation-item:hover,
+  .conversation-item:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+  .conversation-item.active {
+    background: #c4c07e; /* Darker yellowish when active */
+    border-color: #294229;
+    box-shadow:
+      0 0 0 3px #294229 inset; /* Inset pixel border to show active */
+  }
+  .conversation-title {
+    font-weight: 700;
+    font-size: 10px;
+    color: #1e2a1f;
+    margin-bottom: 6px;
+    padding-right: 30px; /* Make space for discard button */
+  }
+  .conversation-snippet {
+    font-size: 8px;
+    color: #355739;
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflow */
+    padding-right: 30px; /* Make space for discard button */
+  }
+  .conversation-timestamp {
+    font-size: 7px;
+    color: #355739;
+    margin-top: 4px;
+    align-self: flex-end; /* Align timestamp to the right */
+  }
+
+  /* Discard button within conversation item */
+  .discard-conversation-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #dada98;
+    border: 2px solid #355739;
+    border-radius: 4px;
+    color: #e53e3e; /* Red color for delete icon */
+    cursor: pointer;
+    font-family: 'Material Icons';
+    font-size: 18px; /* Smaller icon for list item */
+    padding: 2px;
+    line-height: 1;
+    box-shadow: inset 1px 1px 0 #fafad2;
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .discard-conversation-btn:hover,
+  .discard-conversation-btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+
+  /* New Chat pixel style button */
+  #new-chat-btn {
+    border: 4px solid #355739;
+    background: #dada98;
+    padding: 10px 16px;
+    margin: 12px 16px 20px 16px; /* Padding for button below search */
+    font-weight: 700;
+    font-size: 10px;
+    font-family: 'Press Start 2P', cursive;
+    color: #23341c;
+    cursor: pointer;
+    box-shadow:
+      4px 4px 0 #294229,
+      inset 2px 2px 0 #fafad2;
+    text-transform: uppercase;
+    transition: background 0.3s ease;
+    border-radius: 4px;
+    width: auto; /* Fit content */
+    align-self: center; /* Center button in sidebar */
+  }
+  #new-chat-btn:hover,
+  #new-chat-btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+
+  /* Chat area styling */
+  .chat-area {
+    flex-grow: 1;
+    background: #e9f5e1; /* New, brighter background for chat area */
+    border: 4px solid #355739;
+    border-radius: 4px;
+    margin: 16px 0;
+    padding: 12px;
+    font-size: 16px; /* Increased font size for Noto Sans */
+    line-height: 1.6; /* Increased line-height for better readability */
+    color: #23341c;
+    min-height: 100px; /* Slightly reduced min-height, allowing flex-grow to manage */
+    white-space: pre-wrap; /* preserve pixel text style */
+    overflow-y: auto;
+    box-shadow: inset 2px 2px 0 #e3f7db;
+    display: flex; /* Enable flexbox for messages inside */
+    flex-direction: column; /* Stack messages vertically */
+    gap: 8px; /* Space between message bubbles */
+  }
+
+  /* Avatar and greeting area */
+  .avatar-greeting {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .avatar {
+    flex-shrink: 0;
+    width: 120px;
+    height: 120px;
+    border: 4px solid #355739;
+    border-radius: 4px;
+    background: url("{{ url_for('static', filename='output-onlinegiftools.gif') }}") center center no-repeat white; /* Changed to output.gif */
+    background-size: contain; /* Changed from cover to contain to prevent cropping */
+    box-shadow:
+      2px 2px 0 #294229,
+      inset 1px 1px 0 #a1b49d;
+  }
+  .greeting-text {
+    background: #dff0d8; /* New, vibrant background for greeting */
+    border: 4px solid #355739;
+    padding: 12px;
+    flex: 1;
+    font-size: 16px; /* Increased font size for better pixel visibility */
+    color: #23341c;
+    box-shadow: inset 1px 1px 0 #fafad2;
+    border-radius: 4px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    white-space: pre-line;
+    font-family: 'Press Start 2P', cursive;
+  }
+
+  /* New: Message bubble styles */
+  .message-bubble {
+    padding: 10px 15px; /* Increased padding */
+    border-radius: 4px;
+    border: 3px solid #355739;
+    font-size: 16px; /* Increased font size for Noto Sans */
+    line-height: 1.4;
+    max-width: 90%; /* Max width for message bubbles */
+    word-wrap: break-word; /* Ensure long words wrap */
+    box-shadow: 2px 2px 0 #294229;
+    font-family: 'Noto Sans', sans-serif; /* Applied new font for readability */
+    display: block; /* Ensure the element is displayed */
+    visibility: visible; /* Ensure the element is visible */
+  }
+
+  .user-message {
+    background-color: #dada98; /* Yellowish for user messages */
+    align-self: flex-end; /* Align user messages to the right */
+    border-color: #294229;
+    color: #23341c; /* Dark text for user messages */
+  }
+
+  .bot-message {
+    background-color: #a1c7af; /* Slightly lighter green for primary bot messages for better contrast */
+    align-self: flex-start; /* Align bot messages to the left */
+    border-color: #355739;
+    color: #23341c; /* Darker text for primary bot messages for better contrast */
+  }
+
+  /* New: Alternate message bubble styles */
+  .user-message-alt {
+    background-color: #fff8dc; /* Very light cream for alt user messages */
+    align-self: flex-end;
+    border-color: #294229;
+    color: #23341c; /* Dark text for alt user messages */
+  }
+
+  .bot-message-alt {
+    background-color: #d8e5d3; /* Lighter existing light green for alt bot messages for better contrast */
+    align-self: flex-start;
+    border-color: #355739;
+    color: #23341c; /* Darker text for alt bot messages for better contrast */
+  }
+
+  /* New: System message style */
+  .system-message {
+    background-color: #6f8c7b; /* Darker muted green for system messages */
+    color: #e9f5e1; /* Lighter text for contrast */
+    align-self: center; /* Center these messages */
+    border-color: #294229;
+    text-align: center;
+    width: fit-content; /* Make bubble fit content */
+    max-width: 90%;
+  }
+
+  /* Input area */
+  .input-area {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .chat-input {
+    flex-grow: 5; /* Make the input field take more space */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    padding: 10px 8px;
+    border: 4px solid #355739;
+    border-radius: 4px;
+    background: #dada98;
+    color: #23341c;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    outline-offset: 2px;
+  }
+  .chat-input:focus {
+    outline: none;
+    background: #c4c07e;
+    box-shadow:
+      inset 2px 2px 0 #fafad2,
+      0 0 0 2px #294229;
+  }
+
+  /* Buttons */
+  .send-btn, .action-btn {
+    border: 4px solid #355739;
+    border-radius: 4px;
+    background: #dada98;
+    color: #23341c;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    padding: 10px 16px !important;
+    font-size: 12px !important;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    transition: background 0.3s ease;
+    width: auto; /* Allow button to size based on content */
+    flex-shrink: 0; /* Prevent button from shrinking */
+  }
+  .send-btn:hover,
+  .send-btn:focus,
+  .action-btn:hover,
+  .action-btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+
+  .send-btn:active, .action-btn:active {
+    box-shadow: inset 1px 1px 0 #c4c07e;
+    transform: translateY(1px);
+  }
+
+  /* New style for Voice Input button */
+  .voice-input-btn {
+    background: #7a9b85; /* pixel green */
+    color: #e9f5e1; /* Light text */
+    border-color: #355739;
+  }
+
+  .voice-input-btn.recording {
+    background: #e53e3e; /* Red when recording */
+    border-color: #a02c2c;
+    color: white;
+  }
+
+  .voice-input-btn:hover, .voice-input-btn:focus {
+      background: #92b6a1; /* Darker green on hover */
+  }
+
+  .voice-input-btn.recording:hover, .voice-input-btn.recording:focus {
+      background: #c53030; /* Darker red on hover when recording */
+  }
+
+  /* Modal backdrop and container */
+  #discard-confirm-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex; /* Keep this for centering content */
+    justify-content: center;
+    align-items: center;
+    z-index: 2147483647; /* Set to absolute max to ensure it's on top */
+    opacity: 0; /* Hidden by default for transitions */
+    pointer-events: none; /* Block interaction when hidden */
+  }
+  /* Rule to explicitly hide the modal when 'hidden' attribute is present */
+  #discard-confirm-modal[hidden] {
+    display: none !important; /* Forces hidden state */
+  }
+
+  /* Class for when the modal is intended to be visible and transition */
+  #discard-confirm-modal.modal-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.25s ease; /* Apply transition here */
+  }
+  .modal-content {
+    background: #7a9b85; /* pixel green */
+    border: 4px solid #355739; /* pixel dark green border */
+    border-radius: 8px;
+    padding: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow:
+      4px 4px 0 #294229,
+      inset 2px 2px 0 #a1b49d;
+    font-family: 'Press Start 2P', cursive;
+    outline: none;
+    color: #23341c;
+  }
+  .modal-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 12px 0;
+    color: #c5d3b0;
+    background: #355739;
+    padding: 8px 12px;
+    border-bottom: 2px solid #294229;
+    box-shadow: inset 2px 2px 0 #a1b49d;
+    border-radius: 4px;
+  }
+  .modal-description {
+    font-size: 10px;
+    color: #23341c;
+    margin-bottom: 24px;
+    padding: 8px 0;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  /* Buttons styled to match existing pixel-art buttons */
+  .modal-actions .btn {
+    border: 4px solid #355739;
+    border-radius: 4px;
+    background: #dada98;
+    color: #23341c;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 10px;
+    box-shadow: inset 2px 2px 0 #fafad2;
+    transition: background 0.3s ease;
+    width: auto !important; /* Force original width */
+    min-width: 80px !important; /* Ensure minimum pixel-art width */
+    max-width: 160px !important; /* Ensure maximum pixel-art width */
+  }
+  .modal-actions .btn:hover,
+  .modal-actions .btn:focus {
+    background: #c4c07e;
+    outline: none;
+  }
+  .modal-actions .btn:active {
+    box-shadow: inset 1px 1px 0 #c4c07e;
+    transform: translateY(1px);
+  }
+  .btn-discard {
+    background: #e53e3e; /* Red color for discard */
+    color: white;
+    border-color: #a02c2c;
+  }
+  .btn-discard:hover,
+  .btn-discard:focus {
+    background: #c53030;
+  }
+
+   /* Save Conversation Modal Specific Styles (reusing modal-hidden, modal-content, modal-title, modal-description, modal-actions, .btn from discard modal) */
+   #save-conversation-modal .modal-input {
+     width: calc(100% - 24px); /* Account for padding */
+     padding: 8px 10px;
+     margin-bottom: 16px;
+     border-radius: 4px;
+     border: 4px solid #355739;
+     font-family: 'Press Start 2P', cursive;
+     font-size: 9px;
+     color: #23341c;
+     background: #dada98;
+     box-shadow: inset 2px 2px 0 #fafad2;
+     transition: background 0.3s ease;
+   }
+   #save-conversation-modal .modal-input::placeholder {
+     color: #5a6a48;
+   }
+   #save-conversation-modal .modal-input:focus {
+     outline: none;
+     background: #c4c07e;
+     box-shadow:
+       inset 2px 2px 0 #fafad2,
+       0 0 0 2px #294229;
+   }
+
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .chatbot-container {
+      margin: 16px;
+    }
+    .input-area {
+      flex-direction: column;
+    }
+    /* Force buttons to maintain their specific pixel-art width on smaller screens */
+    .send-btn, .action-btn {
+      width: auto !important;
+      min-width: 100px !important;
+      max-width: 200px !important;
+    }
+    main.sidebar-open {
+      margin-left: 0; /* No push on mobile */
+      filter: brightness(0.5); /* Still dim content */
+    }
+  }
+
+  /* Responsive adjustments for modal */
+  @media (max-width: 480px) {
+    .modal-content {
+      padding: 12px;
+      margin: 16px; /* Add margin on small screens */
+    }
+    .modal-actions {
+      flex-direction: column;
+      gap: 8px;
+    }
+    /* Force modal buttons to maintain their specific pixel-art width on smaller screens */
+    .modal-actions .btn {
+      width: auto !important;
+      padding: 10px 12px;
+      min-width: 80px !important;
+      max-width: 160px !important;
+    }
+  }
+
+  /* Ensure body takes up full viewport height, especially for mobile */
+  html, body {
+      height: 100%;
+      /* REMOVED: overflow: hidden; to allow general page scrolling */
+  }
+
+  /* Media query for smaller screens - adjust sidebar width */
+  @media (max-width: 768px) {
+    #conversation-sidebar {
+      width: 100%; /* Full width on smaller screens */
+    }
+  }
+</style>
+</head>
+<body>
+  <video autoplay muted loop id="video-background">
+    <source src="{{ url_for('static', filename='forest-pond-pixel-moewalls-com.mp4') }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <!-- Conversation Sidebar -->
+  <aside id="conversation-sidebar">
+    <div id="sidebar-header">
+      <span>CONVERSATIONS</span>
+      <button id="sidebar-close-btn" aria-label="Close conversations sidebar" title="Close sidebar">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+    <div id="sidebar-search">
+      <input type="text" id="conversationSearchInput" placeholder="SEARCH CONVERSATIONS..." aria-label="Search conversations">
+    </div>
+    <div id="conversation-list" tabindex="0" aria-live="polite">
+      <!-- Conversation items will be dynamically loaded here -->
+    </div>
+    <button id="new-chat-btn" class="action-btn">NEW CHAT</button>
+  </aside>
+
+  <div class="main-content-area">
+  <header>
+      <div class="logo">WELL-BEING COMPANION</div>
+      <div class="menu-container">
+        <button id="menuToggleBtn" class="menu-toggle-btn" aria-label="Toggle conversations menu" title="Open sidebar">
+          <i class="material-icons">menu</i>
+    </button>
+      </div>
+  </header>
+
+    <main id="mainContentArea">
+    <section class="chatbot-container" role="main" aria-label="Chatbot interface">
+      <div class="avatar-greeting" aria-live="polite">
+        <div class="avatar" role="img" aria-label="Pixel art avatar of Moa, the chatbot therapist"></div>
+        <div class="greeting-text" id="greetingText">Hi, I'm Moa, your pixel well-being companion!</div>
+      </div>
+      <div class="chat-area" id="chatArea" aria-live="polite" aria-atomic="true" tabindex="0"></div>
+
+      <form class="input-area" id="chatForm" aria-label="Send a message to the chatbot">
+        <input
+          type="text"
+          id="user-input"
+          class="chat-input"
+          placeholder="Type your message..."
+          aria-describedby="inputHelp"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" class="send-btn" aria-label="Send message">
+          <span class="material-icons" aria-hidden="true">send</span> Send
+        </button>
+        <button type="button" class="action-btn voice-input-btn" id="voiceInputBtn" aria-label="Voice input">
+          <span class="material-icons" aria-hidden="true">mic</span> Voice Input
+        </button>
+      </form>
+
+      <button type="button" class="action-btn" id="breathing-exercise-btn" aria-label="Start breathing exercise">
+        Start breathing exercise
+      </button>
+    </section>
+  </main>
+  </div>
+
+  <!-- Discard Confirmation Modal -->
+  <div id="discard-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="discardConfirmLabel" aria-describedby="discardConfirmDesc" class="modal-hidden">
+    <div class="modal-content" role="document" tabindex="-1">
+      <h2 id="discardConfirmLabel" class="modal-title">Discard Conversation?</h2>
+      <p id="discardConfirmDesc" class="modal-description">
+        Are you sure you want to discard this conversation? This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button id="discardCancelBtn" class="btn btn-cancel" type="button">Cancel</button>
+        <button id="discardConfirmBtn" class="btn btn-discard" type="button">Discard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure the background video always starts from the beginning
+      const video = document.getElementById('video-background');
+      if (video) {
+        video.currentTime = 0;
+        // Optionally, play it explicitly in case autoplay was blocked
+        video.play().catch(error => {
+            console.warn("Video autoplay prevented:", error);
+        });
+      }
+
+      let userMessageCount = 0;
+      let botMessageCount = 0;
+      let conversationHistory = [];
+      let userProfile = {};
+      let currentConversationName = 'default';
+      let discardTargetName = null;
+      let mediaRecorder;
+      let audioChunks = [];
+      let isRecording = false;
+
+      // Modal elements
+      const discardConfirmModal = document.getElementById('discard-confirm-modal');
+      const discardConfirmBtn = document.getElementById('discardConfirmBtn');
+      console.log('discardConfirmBtn element:', discardConfirmBtn); // Debugging: check if element is found
+      const discardCancelBtn = document.getElementById('discardCancelBtn');
+
+      // Main chat elements
+      const chatBox = document.getElementById('chatArea');
+      const chatInput = document.getElementById('user-input');
+      const chatForm = document.getElementById('chatForm');
+      const breathingExerciseBtn = document.getElementById('breathing-exercise-btn');
+      const voiceInputBtn = document.getElementById('voiceInputBtn');
+      
+      // Sidebar elements
+      const menuToggleBtn = document.getElementById('menuToggleBtn');
+      const conversationSidebar = document.getElementById('conversation-sidebar');
+      const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+      const conversationList = document.getElementById('conversation-list');
+      const newChatBtn = document.getElementById('new-chat-btn');
+      const conversationSearchInput = document.getElementById('conversationSearchInput');
+      const mainContentArea = document.querySelector('.main-content-area');
+
+
+      // --- Helper Functions ---
+
+      function renderConversationList(filter = '') {
+        fetch('/list_conversations')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              conversationList.innerHTML = '';
+              let conversations = data.conversations;
+
+              // Filter conversations based on search input
+              const filteredConversations = conversations.filter(name =>
+                name.toLowerCase().includes(filter.toLowerCase())
+              );
+
+              if (filteredConversations.length === 0) {
+                const noResult = document.createElement('div');
+                noResult.textContent = 'NO CONVERSATIONS FOUND';
+                noResult.style.padding = '16px';
+                noResult.style.color = '#355739';
+                noResult.style.fontFamily = "'Press Start 2P', cursive";
+                conversationList.appendChild(noResult);
+                return;
+              }
+
+              filteredConversations.forEach(name => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'conversation-item';
+                if (name === currentConversationName) {
+                  item.classList.add('active');
+                }
+                item.setAttribute('aria-label', `Open conversation ${name}`);
+                item.innerHTML = `
+                  <div class="conversation-title">${name.toUpperCase()}</div>
+                  <div class="conversation-snippet">Click to load...</div>
+                  <div class="conversation-timestamp"></div>
+                  <button class="discard-conversation-btn" data-conversation-name="${name}" title="Discard conversation" aria-label="Discard conversation ${name}">
+                    <span class="material-icons" aria-hidden="true">delete_forever</span>
+                  </button>
+                `;
+
+                // Attach event listeners
+                item.addEventListener('click', (e) => {
+                  if (!e.target.closest('.discard-conversation-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    loadAndDisplayConversation(name);
+                    closeSidebar();
+                  }
+                });
+
+                item.querySelector('.discard-conversation-btn').addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Discard button clicked for:', name);
+                  openDiscardModal(name);
+                });
+
+                conversationList.appendChild(item);
+              });
+            } else {
+              console.error('Error listing conversations:', data.message);
+              addSystemMessage("Failed to list conversations: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Network error:', error);
+            addSystemMessage('Network error during conversation list fetch.');
+          });
+      }
+
+      function addMessage(message, fromUser = true, isSystem = false) {
+        if (!message || (typeof message === 'string' && message.trim().length === 0)) return;
+        
+        const messageElement = document.createElement('div');
+        let senderClass = '';
+        
+        if (fromUser) {
+          senderClass = userMessageCount % 2 === 0 ? 'user-message' : 'user-message-alt';
+          userMessageCount++;
+        } else if (isSystem) {
+          senderClass = 'system-message';
+        } else {
+          senderClass = botMessageCount % 2 === 0 ? 'bot-message' : 'bot-message-alt';
+          botMessageCount++;
+        }
+        
+        messageElement.classList.add('message-bubble', senderClass);
+        
+        let displayText = '';
+        if (typeof message === 'string' || message instanceof String) {
+          displayText = String(message).trim();
+        } else if (typeof message === 'object' && message !== null) {
+          if (message.text !== undefined) {
+            displayText = String(message.text).trim();
+          } else {
+            displayText = JSON.stringify(message);
+          }
+        } else if (Array.isArray(message)) {
+          displayText = message.map(item => {
+            if (typeof item === 'object' && item !== null && item.text !== undefined) {
+              return String(item.text).trim();
+            } else if (typeof item === 'object' && item !== null) {
+              return JSON.stringify(item);
+            }
+            return String(item).trim();
+          }).join(' ');
+        } else {
+          displayText = String(message).trim();
+        }
+
+        messageElement.textContent = displayText;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function addSystemMessage(msg) {
+        addMessage(msg, false, true);
+      }
+
+      async function loadAndDisplayConversation(name) {
+        try {
+          const response = await fetch(`/load_conversation?conversation_name=${encodeURIComponent(name)}`);
+          const data = await response.json();
+          if (data.success) {
+            conversationHistory = data.history || [];
+            userProfile = data.user_profile || {};
+            currentConversationName = name;
+            chatBox.innerHTML = '';
+            // Only add messages if there is history. The initial greeting is always in the HTML.
+            if (conversationHistory.length > 0) {
+              userMessageCount = 0;
+              botMessageCount = 0;
+              conversationHistory.forEach(turn => {
+                if(turn.role === 'user' && turn.parts && turn.parts[0]){
+                  addMessage(turn.parts[0], true);
+                } else if (turn.role === 'model' && turn.parts && turn.parts[0]){
+                  addMessage(turn.parts[0], false);
+                }
+              });
+            }
+            addSystemMessage(`Loaded conversation: "${name}"`);
+            renderConversationList(conversationSearchInput.value);
+          } else {
+            addSystemMessage("Failed to load conversation: " + data.message);
+          }
+        } catch (error) {
+          console.error(error);
+          addSystemMessage("Network error during conversation load.");
+        }
+      }
+
+      async function sendMessage(message) {
+        if (!message.trim()) return;
+        addMessage(message, true);
+        chatInput.value = '';
+
+        try {
+          const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              message,
+              history: conversationHistory,
+              user_profile: userProfile,
+              conversation_name: currentConversationName
+            })
+          });
+          const data = await response.json();
+          if (data.response) {
+            addMessage(data.response, false);
+            conversationHistory = data.history || [];
+            userProfile = data.user_profile || {};
+            // Update conversation name if a new one was generated by the backend
+            if (data.conversation_name && data.conversation_name !== currentConversationName) {
+              currentConversationName = data.conversation_name;
+            }
+            renderConversationList(conversationSearchInput.value);
+          } else {
+            addSystemMessage("No response from bot.");
+          }
+        } catch (error) {
+          console.error(error);
+          addSystemMessage("Network error or server issue. Please try again.");
+        }
+      }
+
+      async function deleteConversation(name) {
+        console.log('Attempting to delete conversation:', name);
+        console.log('Sending request to /delete_conversation with name:', name);
+        try {
+          let res = await fetch('/delete_conversation', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ conversation_name: name })
+          });
+          console.log('Received response from /delete_conversation');
+          let data = await res.json();
+          if(data.success){
+            addSystemMessage(`Conversation "${name}" discarded successfully.`);
+            console.log('Deletion successful, updating UI. Response:', data);
+            if(currentConversationName === name){
+              currentConversationName = 'default';
+              conversationHistory = [];
+              userProfile = {};
+              chatBox.innerHTML = `
+                <div class="avatar-greeting">
+                  <div class="avatar" role="img" aria-label="Pixel art avatar of Moa, the chatbot therapist"></div>
+                  <div class="greeting-text">Hi, I'm Moa, your pixel well-being companion!</div>
+                </div>`;
+              addSystemMessage("Switched to a new default chat.");
+            }
+            renderConversationList(conversationSearchInput.value);
+          } else {
+            addSystemMessage(`Failed to discard conversation: ${data.message}`);
+            console.error('Deletion failed: Backend message:', data.message);
+          }
+        } catch (error) {
+          console.error('Network error during conversation discard (frontend catch):', error);
+          addSystemMessage('Network error during conversation discard.');
+        }
+      }
+
+      // --- Modal and Sidebar Toggle Functions ---
+
+      function openSidebar() {
+        conversationSidebar.classList.add('open');
+        mainContentArea.classList.add('sidebar-open'); // Dim main content
+        conversationSearchInput.focus();
+      }
+      function closeSidebar() {
+        conversationSidebar.classList.remove('open');
+        mainContentArea.classList.remove('sidebar-open'); // Un-dim main content
+      }
+      function toggleSidebar() {
+        if (conversationSidebar.classList.contains('open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      }
+
+      function openDiscardModal(name) {
+        discardTargetName = name;
+        discardConfirmModal.classList.remove('modal-hidden'); // Show by removing class
+        discardConfirmModal.classList.add('modal-visible'); // Ensure visibility and interactivity
+        discardConfirmModal.querySelector('.modal-content').focus();
+      }
+      function closeDiscardModal() {
+        discardConfirmModal.classList.add('modal-hidden'); // Hide by adding class
+        discardConfirmModal.classList.remove('modal-visible'); // Remove visibility for next open
+        discardTargetName = null;
+      }
+
+      // --- Event Listeners ---
+
+      chatForm.addEventListener('submit', e => {
+        e.preventDefault();
+        sendMessage(chatInput.value);
+      });
+
+      breathingExerciseBtn.addEventListener('click', () => {
+        fetch('/breathing_exercise', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.steps){
+            addSystemMessage("Let's start a breathing exercise:");
+            data.steps.forEach(step => addMessage(step, false, true));
+          } else {
+            addSystemMessage('Error: Could not retrieve breathing exercise steps.');
+          }
+        })
+        .catch(err => {
+          console.error('Breathing exercise error:', err);
+          addSystemMessage('Network error or server issue during breathing exercise.');
+        });
+      });
+
+      newChatBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentConversationName = 'default';
+        conversationHistory = [];
+        userProfile = {};
+        userMessageCount = 0;
+        botMessageCount = 0;
+        chatBox.innerHTML = ''; // Clear chatbox completely on new chat
+        addSystemMessage("Started a new chat.");
+        closeSidebar();
+        renderConversationList(conversationSearchInput.value);
+      });
+
+      conversationSearchInput.addEventListener('input', e => {
+        renderConversationList(e.target.value);
+      });
+
+      discardCancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeDiscardModal();
+      });
+      
+      discardConfirmBtn.addEventListener('click', (e) => {
+        console.log('Discard Confirmation button click event triggered.'); // Debugging: Unconditional log
+        e.preventDefault();
+        console.log('Discard Confirmation button clicked for:', discardTargetName);
+        if (discardTargetName) {
+          deleteConversation(discardTargetName);
+          closeDiscardModal();
+        }
+      });
+
+      menuToggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebar();
+      });
+
+      sidebarCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeSidebar();
+      });
+
+      // New: Voice Input functionality
+      voiceInputBtn.addEventListener('click', async () => {
+        if (!isRecording) {
+          // Start recording
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = event => {
+              audioChunks.push(event.data);
+            };
+            mediaRecorder.onstop = async () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              audioChunks = []; // Clear for next recording
+
+              // Send to Whisper API
+              const formData = new FormData();
+              formData.append("audio", audioBlob, "recording.wav");
+
+              addSystemMessage("Transcribing audio...");
+              try {
+                const response = await fetch("/transcribe", {
+                  method: "POST",
+                  body: formData
+                });
+                const data = await response.json();
+
+                if (data.text) {
+                  sendMessage(data.text); // Send transcribed text to chat
+                } else if (data.error) {
+                  addSystemMessage("Transcription error: " + data.error);
+                  console.error("Transcription error:", data.error);
+                } else {
+                  addSystemMessage("Unknown transcription response.");
+                  console.error("Unknown transcription response:", data);
+                }
+              } catch (error) {
+                addSystemMessage("Network error during transcription.");
+                console.error("Network error during transcription:", error);
+              }
+              // Stop microphone stream (important for privacy)
+              stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            voiceInputBtn.classList.add('recording');
+            addSystemMessage("Recording started... Say something!");
+          } catch (error) {
+            addSystemMessage("Error accessing microphone: " + error.message);
+            console.error("Microphone access error:", error);
+          }
+        } else {
+          // Stop recording
+          mediaRecorder.stop();
+          isRecording = false;
+          voiceInputBtn.classList.remove('recording');
+          addSystemMessage("Recording stopped. Processing...");
+        }
+      });
+
+      // Escape key closes modals and sidebar
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (!discardConfirmModal.classList.contains('modal-hidden')) { // Check if modal is visible (doesn't have class)
+            e.preventDefault();
+            closeDiscardModal();
+          } else if (conversationSidebar.classList.contains('open')) {
+            closeSidebar();
+          }
+        }
+      });
+
+      // Click outside sidebar or modals closes them
+      document.addEventListener('click', e => {
+        if (conversationSidebar.classList.contains('open')) {
+          if (!conversationSidebar.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+            closeSidebar();
+          }
+        }
+        // For discard modal
+        if (!discardConfirmModal.classList.contains('modal-hidden')) { // Check if it's visible
+          if (!discardConfirmModal.querySelector('.modal-content').contains(e.target) && e.target !== discardConfirmModal) { // Also check if target is not the modal itself
+            closeDiscardModal();
+          }
+        }
+      });
+
+      // Initial load
+      loadAndDisplayConversation(currentConversationName);
+      renderConversationList();
+      chatInput.focus();
+    });
+  </script>
+</body>
+</html>

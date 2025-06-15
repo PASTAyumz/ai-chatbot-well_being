@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Database files
+db.sqlite3
+
+# IDE specific files
+.vscode/
+.cursor/
+
+# OS generated files
+.DS_Store
+Thumbs.db 
+
+
+# Environment variables file
+.env

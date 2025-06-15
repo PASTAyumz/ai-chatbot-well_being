@@ -1,0 +1,318 @@
+body {
+    font-family: 'Press Start 2P', cursive; /* Ideal for pixel art, but requires import */
+    background-color: #3f4f3f; /* Darker green background from image */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    overflow: auto; /* Allow scroll if content overflows, safer for various screen sizes */
+    image-rendering: pixelated; /* Ensures crisp pixels for browser scaling */
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Fallback for font if not loaded */
+body, input, button {
+    font-family: 'Press Start 2P', cursive, monospace, sans-serif; /* Prioritize pixel font */
+}
+
+.chat-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px; /* Add some overall padding around the container */
+    box-sizing: border-box; /* Include padding in element's total width and height */
+}
+
+.chat-container {
+    width: 95%; /* Wider for laptop, allow flexibility */
+    max-width: 960px; /* Significantly increased max-width for laptop screens */
+    height: 850px; /* Increased fixed height for laptop screens */
+    background-color: #d3e0db; /* Main chat area background */
+    border: 6px solid #8c9c8a; /* Thicker border */
+    border-radius: 0; /* Pixel art usually has sharp corners */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.4); /* Larger pixelated shadow */
+    position: relative; /* For absolute positioning of elements */
+}
+
+.chat-header {
+    display: flex;
+    justify-content: flex-start; /* Align header content to the start */
+    align-items: center;
+    padding: 15px;
+    background-color: #a4b49b; /* Header background */
+    border-bottom: 6px solid #8c9c8a; /* Header bottom border */
+    position: relative;
+    z-index: 10;
+}
+
+.moa-profile {
+    display: flex;
+    align-items: center;
+    border: 3px solid #8c9c8a; /* Avatar frame border */
+    padding: 5px;
+    background-color: #d3e0db; /* Inside avatar frame */
+}
+
+.moa-logo { /* New class for logo.png */
+    width: 60px; /* Adjusted size to match screenshot */
+    height: 60px;
+    border-radius: 0;
+    margin-right: 15px;
+    image-rendering: pixelated;
+}
+
+.header-text h1 {
+    margin: 0;
+    font-size: 1.4em; /* Larger pixel font size */
+    color: #3f4f3f; /* Darker green text */
+    white-space: nowrap;
+}
+
+/* Language button removed - no CSS needed */
+
+.chat-history {
+    flex-grow: 1;
+    padding: 20px; /* Increased padding */
+    overflow-y: auto;
+    background-color: #d3e0db;
+    background-repeat: repeat;
+    background-size: 32px; /* Adjust as needed for the pattern */
+    image-rendering: pixelated;
+    scroll-behavior: smooth;
+    padding-bottom: 25px; /* More space before input */
+}
+
+/* Custom scrollbar for pixel art style */
+.chat-history::-webkit-scrollbar {
+    width: 15px; /* Wider scrollbar */
+}
+.chat-history::-webkit-scrollbar-track {
+    background: #a4b49b;
+    border: 2px solid #8c9c8a; /* Thicker border */
+}
+.chat-history::-webkit-scrollbar-thumb {
+    background: #6e7e6d;
+    border: 2px solid #3f4f3f; /* Thicker border */
+    border-radius: 0;
+}
+
+/* Welcome Message Specific Styles */
+.welcome-message-container {
+    text-align: center;
+    margin-bottom: 20px; /* Space between welcome message and first chat */
+    padding: 15px;
+    background-color: #f0f8ee; /* Light background for welcome message */
+    border: 3px solid #c2e6c2;
+    border-radius: 0;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 90%;
+}
+
+.welcome-message-image {
+    width: 250px; /* Adjust size of WelcomeMessage.png */
+    height: auto;
+    image-rendering: pixelated;
+    margin-bottom: 10px;
+}
+
+.welcome-text {
+    font-size: 1.1em; /* Larger font for welcome text */
+    color: #3f4f3f;
+    margin: 0;
+    line-height: 1.5;
+}
+
+
+.chat-message {
+    padding: 12px 18px; /* Larger padding */
+    margin-bottom: 12px;
+    border-radius: 0;
+    word-wrap: break-word;
+    max-width: 80%; /* Slightly wider messages */
+    border: 3px solid; /* Thicker border */
+    font-size: 1em; /* Larger pixel font */
+    line-height: 1.6; /* Improve readability */
+}
+
+.chat-message.user {
+    background-color: #e6ffe6;
+    align-self: flex-end;
+    margin-left: auto;
+    border-color: #c2e6c2;
+    color: #3f4f3f;
+}
+
+.chat-message.bot {
+    background-color: #ffffff;
+    align-self: flex-start;
+    margin-right: auto;
+    border-color: #cccccc;
+    color: #3f4f3f;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column; /* Stack input elements vertically */
+    align-items: center;
+    padding: 20px; /* Larger padding around the input area */
+    border-top: 6px solid #8c9c8a;
+    background-color: #a4b49b;
+    position: relative; /* For positioning the background image */
+    overflow: hidden; /* Hide parts of background image if necessary */
+    min-height: 120px; /* Ensure enough space for background image */
+    justify-content: center;
+}
+
+.input-background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the area, may crop */
+    image-rendering: pixelated;
+    z-index: 0; /* Behind input elements */
+    opacity: 1; /* Full opacity for input background image */
+    pointer-events: none; /* Allows clicks to pass through to elements below */
+}
+
+.input-elements-wrapper {
+    display: flex;
+    width: calc(100% - 20px); /* Adjust width to account for padding/borders of parent */
+    max-width: 600px;
+    position: relative;
+    z-index: 1;
+    padding: 0; /* Remove padding here, handled by input and button */
+    border-radius: 0;
+    border: none; /* Remove wrapper border, it's part of the image */
+    background-color: transparent; /* Ensure no background interferes with image */
+}
+
+.message-input {
+    flex-grow: 1;
+    padding: 10px 15px; /* Adjusted padding to fit inside the image's input area */
+    border: none; /* No border for input field, it's part of the image */
+    border-radius: 0;
+    font-size: 1.1em;
+    background-color: transparent; /* Make input background transparent to show image */
+    color: #3f4f3f;
+    outline: none;
+    box-sizing: border-box;
+    margin-right: 10px; /* Space between input and send button */
+}
+
+.send-button {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-left: 0; /* Removed margin here, adjusted in input */
+    cursor: pointer;
+    line-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s ease;
+    box-sizing: border-box;
+    min-width: 50px; /* Smaller minimum width for send button */
+    min-height: 50px; /* Smaller minimum height for send button */
+}
+
+.send-button img {
+    width: 50px; /* Adjusted size to match screenshot's send button */
+    height: 50px;
+    image-rendering: pixelated;
+}
+
+.send-button:hover {
+    transform: scale(1.05);
+    background-color: transparent;
+}
+
+.voice-button {
+    margin-left: 10px; /* Space between send and voice button */
+}
+
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 20px;
+    padding: 20px;
+    background-color: #a4b49b;
+    border-top: 6px solid #8c9c8a;
+}
+
+.grid-button {
+    background-color: #a4b49b; /* Green background for buttons */
+    color: #3f4f3f; /* Dark green text */
+    border: 6px solid #8c9c8a; /* Pixelated border for buttons */
+    border-radius: 0;
+    font-size: 1.1em;
+    padding: 15px 20px; /* Adjusted padding for button size */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Center text */
+    transition: transform 0.1s ease;
+    box-sizing: border-box;
+    min-height: 60px; /* Ensure a good height for the buttons */
+}
+
+.grid-button img {
+    width: 40px; /* Size for images within grid buttons */
+    height: 40px;
+    image-rendering: pixelated;
+    margin-right: 10px; /* Space between image and text in button */
+}
+
+.grid-button:hover {
+    transform: scale(1.03); /* Slight scale on hover */
+    background-color: #92a28b; /* Slightly darker green on hover */
+}
+
+/* Footer (mood emoji) is removed from HTML, so no CSS needed */
+
+/* Ensure the Press Start 2P font is applied correctly */
+#chat-history,
+#user-input,
+.send-button,
+.grid-button,
+h1,
+.welcome-text {
+    font-family: 'Press Start 2P', cursive;
+}
+
+/* Ensure pixelated rendering for all images */
+img {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Specific overrides for chat-history scrollbar */
+#chat-history,
+body::-webkit-scrollbar {
+    width: 15px;
+}
+
+#chat-history::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: #a4b49b;
+    border: 2px solid #8c9c8a;
+}
+
+#chat-history::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: #6e7e6d;
+    border: 2px solid #3f4f3f;
+    border-radius: 0;
+}
