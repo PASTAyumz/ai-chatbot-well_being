@@ -1,7 +1,4 @@
-# Core/emojis.py
 
-# A curated collection of emojis, categorized for careful use.
-# Use these emojis to enhance the bot's responses based on context and sentiment.
 
 EMOJI_COLLECTION = {
     "positive": [
@@ -45,19 +42,14 @@ EMOJI_COLLECTION = {
 }
 
 def get_emoji(category: str, index: int = 0) -> str:
-    """
-    Retrieves an emoji from the collection based on category and index.
-    Returns an empty string if category or index is invalid.
-    """
+   
+   
     return EMOJI_COLLECTION.get(category, [])[index] if category in EMOJI_COLLECTION and \
            isinstance(EMOJI_COLLECTION.get(category), list) and \
            len(EMOJI_COLLECTION[category]) > index else ""
 
 def get_random_emoji(category: str) -> str:
-    """
-    Retrieves a random emoji from the specified category.
-    Returns an empty string if category is invalid or empty.
-    """
+   
     import random
     if category in EMOJI_COLLECTION and isinstance(EMOJI_COLLECTION.get(category), list) and \
        EMOJI_COLLECTION[category]:
@@ -65,8 +57,5 @@ def get_random_emoji(category: str) -> str:
     return ""
 
 def get_specific_emoji(key: str) -> str:
-    """
-    Retrieves a specific emoji from the 'special' category by its key.
-    Returns an empty string if key is invalid.
-    """
+  
     return EMOJI_COLLECTION.get("special", {}).get(key, "") 
