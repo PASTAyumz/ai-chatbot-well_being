@@ -47,7 +47,6 @@ Create a `.env` file in the root directory of your project and add the following
 
 ```
 GEMINI_API_KEY="YOUR_GOOGLE_GEMINI_API_KEY"
-FLASK_SECRET_KEY="A_VERY_STRONG_RANDOM_SECRET_KEY_FOR_FLASK_SESSIONS"
 TWINWORD_API_KEY="YOUR_TWINWORD_RAPIDAPI_KEY"
 ```
 
