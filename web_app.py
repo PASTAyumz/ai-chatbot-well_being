@@ -8,31 +8,31 @@ import whisper
 import werkzeug.datastructures
 from dotenv import load_dotenv
 
-# Suppress gRPC warnings and other unnecessary warnings
+
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", message=".*gRPC.*")
 
-# Set environment variables to suppress gRPC verbose logging
+
 os.environ['GRPC_VERBOSITY'] = 'ERROR'
 os.environ['GRPC_TRACE'] = ''
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings if applicable
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
-# Set up logging to suppress specific gRPC errors
+
 logging.getLogger('grpc').setLevel(logging.ERROR)
 logging.getLogger('google.auth').setLevel(logging.WARNING)
 
 from flask import Flask, render_template, request, jsonify
 
-# FFmpeg path configuration
+
 ffmpeg_bin_path = r"C:\Users\PC\Desktop\ffmpeg-N-119884-gfb65ecbc9b-win64-gpl-shared\bin"
 if os.path.exists(ffmpeg_bin_path) and ffmpeg_bin_path not in os.environ['PATH']:
     os.environ['PATH'] += os.pathsep + ffmpeg_bin_path
     logging.info(f"Added FFmpeg bin path to Python's PATH: {ffmpeg_bin_path}")
 
-# Configure logging - reduced verbosity
+
 logging.basicConfig(
-    level=logging.INFO,  # Changed from DEBUG to INFO to reduce noise
+    level=logging.INFO, 
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler('debug.log'),
@@ -41,11 +41,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Add error handling for missing Core directory
+
 try:
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Core')))
     
-    # Import ChatBot class and other functions
+    
     from Core.chatbot import ChatBot, guided_breathing_exercise
     from Core.utils import load_config
     from Core.memory import save_conversation, load_conversation, list_conversations, delete_conversation
@@ -53,10 +53,9 @@ try:
     app = Flask(__name__)
     config = load_config()
 
-    # Load environment variables from .env file
+    
     load_dotenv()
     
-    # Instantiate ChatBot globally with default model names
     logger.info("Initializing ChatBot...")
     chatbot_instance = ChatBot(chat_model_name="gemini-1.5-flash", title_model_name="gemini-1.5-flash")
     logger.info("ChatBot initialized successfully")
@@ -75,7 +74,7 @@ try:
             conversation_name = data.get('conversation_name', 'default')
             user_message = data['message']
             
-            # Get history and user profile from frontend
+            
             current_conversation_history = data.get('history', [])
             current_user_profile = data.get('user_profile', {})
 
@@ -88,11 +87,11 @@ try:
 
             old_conversation_name = conversation_name
             
-            # Generate new title for default conversations with empty history
+         
             if conversation_name == 'default' and not current_conversation_history:
                 logger.debug("Generating new conversation title")
                 
-                # Create temporary history for title generation
+               
                 title_generation_history = [{'role': 'user', 'parts': [{'text': user_message}]}]
                 generated_title = chatbot_instance.generate_conversation_title(
                     title_generation_history,
@@ -101,26 +100,25 @@ try:
                 conversation_name = generated_title
                 logger.debug(f"Generated title: '{conversation_name}'")
                 
-                # Load existing history for this conversation name
+               
                 loaded_history, loaded_profile = load_conversation(conversation_name)
                 current_conversation_history = loaded_history
                 current_user_profile = loaded_profile if not current_user_profile else current_user_profile
             else:
-                # Load existing conversation
+               
                 current_conversation_history, current_user_profile = load_conversation(conversation_name)
 
-            # Add user message to history
+           
             current_conversation_history.append({'role': 'user', 'parts': [{'text': user_message}]})
 
-            # Get bot response
+           
             bot_response_text = chatbot_instance.get_response(user_message)
             logger.debug(f"Bot response: {bot_response_text}")
             
-            # Update history with bot response
+          
             updated_history = current_conversation_history + [{'role': 'model', 'parts': [{'text': bot_response_text}]}]
             updated_profile = current_user_profile
 
-            # Save conversation
             save_conversation(conversation_name, updated_history, updated_profile)
             logger.debug(f"Saved conversation '{conversation_name}' with {len(updated_history)} entries")
             
@@ -143,14 +141,14 @@ try:
         try:
             logger.debug("Transcribe endpoint called")
             
-            # Check if audio file is present
+            
             if 'audio' not in request.files:
                 logger.error("No audio file in request")
                 return jsonify({"error": "No audio file provided"}), 400
             
             audio_file = request.files['audio']
             
-            # Check if file is valid
+           
             if not audio_file or audio_file.filename == '':
                 logger.error("Empty audio file")
                 return jsonify({"error": "No audio file selected"}), 400
@@ -159,18 +157,18 @@ try:
             
             temp_audio_path = None
             try:
-                # Create temporary file
+                
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_audio:
                     audio_file.save(tmp_audio.name)
                     temp_audio_path = tmp_audio.name
                     logger.debug(f"Audio saved to: {temp_audio_path}")
 
-                # Check if file exists and has content
+               
                 if not os.path.exists(temp_audio_path) or os.path.getsize(temp_audio_path) == 0:
                     logger.error("Audio file is empty or doesn't exist")
                     return jsonify({"error": "Audio file is empty"}), 400
 
-                # Load Whisper model and transcribe
+              
                 logger.debug("Loading Whisper model...")
                 model = whisper.load_model("base")
                 logger.debug("Transcribing audio...")
@@ -185,7 +183,7 @@ try:
                 logger.error(f"Transcription processing error: {str(e)}", exc_info=True)
                 return jsonify({"error": f"Transcription failed: {str(e)}"}), 500
             finally:
-                # Clean up temporary file
+                
                 if temp_audio_path and os.path.exists(temp_audio_path):
                     try:
                         os.remove(temp_audio_path)
