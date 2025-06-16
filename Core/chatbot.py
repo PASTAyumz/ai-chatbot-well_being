@@ -13,11 +13,11 @@ import google.generativeai as genai
 from google.generativeai.types import BlockedPromptException
 import google.api_core.exceptions as api_exceptions
 
-# Suppress warnings early
+
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", message=".*gRPC.*")
 
-# Set gRPC environment variables before importing google libraries
+
 os.environ['GRPC_VERBOSITY'] = 'ERROR'
 os.environ['GRPC_TRACE'] = ''
 
@@ -27,7 +27,7 @@ from mood_logger import log_mood, get_recent_moods, get_moods_by_date
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Suppress specific loggers
+
 logging.getLogger('grpc').setLevel(logging.ERROR)
 logging.getLogger('google.auth').setLevel(logging.WARNING)
 
@@ -51,7 +51,7 @@ TWINWORD_API_HOST = "twinword-sentiment-analysis.p.rapidapi.com"
 TWINWORD_API_URL = "https://twinword-sentiment-analysis.p.rapidapi.com/analyze/"
 
 def detect_mood_twinword(message: str) -> str | None:
-    """Detects mood using Twinword Sentiment Analysis API. Returns 'positive', 'negative', or 'neutral', or None on failure."""
+   
     try:
         response = requests.get(
             TWINWORD_API_URL,
@@ -69,7 +69,7 @@ def detect_mood_twinword(message: str) -> str | None:
     return None
 
 def detect_mood(message: str) -> str:
-    """Detects the mood (positive/negative/neutral) from a message using Twinword API, with keyword fallback."""
+    
     mood = detect_mood_twinword(message)
     if mood in ("positive", "negative", "neutral"):
         return mood
@@ -106,25 +106,25 @@ EMERGENCY_RESOURCES = [
 SUPPORTIVE_RESPONSE = "I hear that you're going through a difficult time. Please know that your feelings are valid, and it takes immense courage to reach out. I want to help you find the support you deserve. It's okay to ask for help, and there are people who care about you. Consider connecting with a professional or trusted person in your life."
 
 def get_time(query: str) -> str:
-    """Returns the current time."""
+    
     if re.search(r'\b(time)\b', query.lower()):
         return datetime.now().strftime("%H:%M:%S")
     return None
 
 def get_date(query: str) -> str:
-    """Returns the current date."""
+    
     if re.search(r'\b(date|today)\b', query.lower()):
         return datetime.now().strftime("%Y-%m-%d")
     return None
 
 def handle_general_query(query: str) -> str:
-    """Handles basic greetings and small talk."""
+    
     if re.search(r'\b(hello|hi|hey)\b', query.lower()):
         return "Hello! How can I help?"
     return None
 
 def handle_crisis_message(query: str) -> str | None:
-    """Checks for crisis-related keywords in the query and returns a crisis response if detected."""
+    
     normalized_query = query.lower()
     for keyword in CRISIS_KEYWORDS:
         if keyword in normalized_query:
@@ -133,7 +133,7 @@ def handle_crisis_message(query: str) -> str | None:
     return None
 
 def show_help() -> str:
-    """Displays a help menu."""
+   
     help_text = [
         "I'm your Well-being Companion! You can talk to me about your feelings, ask general questions, or try these:",
         "- Start a guided breathing exercise",
@@ -145,10 +145,7 @@ def show_help() -> str:
     return "\n".join(help_text)
 
 def extract_and_store_name(query: str, user_profile: dict) -> str | None:
-    """
-    Extracts the user's name from a query and stores it in the user_profile.
-    Returns the extracted name if found, otherwise None.
-    """
+  
     match = re.search(r"(?:my name is|i'm|i am)\s+([a-zA-Z]+(?:[\s'-][a-zA-Z]+)*)", query, re.IGNORECASE)
     if match:
         name = match.group(1).strip()
@@ -163,7 +160,7 @@ class MoodAnalyzer:
         self.NEGATIVE_WORDS = ["sad", "angry", "anxious", "depressed", "tired", "hopeless", "bad", "stressed", "frustrated", "lonely", "empty"]
 
     def analyze_with_api(self, message: str) -> str | None:
-        """Detects mood using Twinword Sentiment Analysis API. Returns 'positive', 'negative', or 'neutral', or None on failure."""
+        
         try:
             response = requests.get(
                 TWINWORD_API_URL,
@@ -181,7 +178,7 @@ class MoodAnalyzer:
         return None
 
     def analyze_with_keywords(self, message: str) -> str:
-        """Detects the mood (positive/negative/neutral) from a message using keyword fallback."""
+       
         text = message.lower()
         score = 0
         for word in self.POSITIVE_WORDS:
@@ -195,7 +192,7 @@ class MoodAnalyzer:
         return "neutral"
 
 def guided_breathing_exercise() -> List[str]:
-    """Returns a list of breathing exercise instructions"""
+    
     return [
         "Welcome to this guided breathing exercise. Find a comfortable position.",
         "1. Breathe in slowly through your nose for 4 counts...",
@@ -211,7 +208,7 @@ class ChatBot:
     def __init__(self, chat_model_name: str, title_model_name: str):
         logger.info("Initializing ChatBot models...")
         
-        # Enhanced safety settings for more reliable responses
+        
         self.safety_settings = [
             {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -219,7 +216,7 @@ class ChatBot:
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
         
-        # Configure generation settings for more consistent responses
+       
         self.generation_config = {
             "temperature": 0.7,
             "top_p": 0.8,
@@ -241,7 +238,7 @@ class ChatBot:
             logger.error(f"Error initializing models: {e}")
             raise
             
-        # Initialize the persistent conversation object with the system prompt
+       
         system_prompt = (
             "You are Moa, a highly empathetic, gentle, and emotionally intelligent well-being companion. "
             "Your core purpose is to offer kind, supportive, and helpful emotional support, like a comforting pixel-art RPG helper. "
@@ -249,22 +246,22 @@ class ChatBot:
             "\n\n**IMPORTANT: You must always respond in English, regardless of the user's input language.**"
         )
         
-        # Start chat with improved error handling
+       
         try:
             self.conversation = self.chat_model.start_chat(history=[])
-            # Send system prompt as first message
+          
             self.conversation.send_message(system_prompt, safety_settings=self.safety_settings)
             logger.info("Conversation initialized with system prompt")
         except Exception as e:
             logger.warning(f"Error setting system prompt: {e}")
-            # Fallback: initialize without system prompt
+           
             self.conversation = self.chat_model.start_chat(history=[])
 
     def get_response(self, message: str) -> str:
         try:
             logger.debug(f"Sending message to model: {message}")
             
-            # Check for crisis messages first
+           
             crisis_response = handle_crisis_message(message)
             if crisis_response:
                 return crisis_response
@@ -283,7 +280,7 @@ class ChatBot:
             return "I cannot respond to that query as it violates safety guidelines. Please try rephrasing your message."
         except Exception as e:
             logger.error(f"Error in get_response: {str(e)}", exc_info=True)
-            # Enhanced error handling for different types of errors
+            
             error_msg = str(e).lower()
             if "quota" in error_msg or "limit" in error_msg:
                 return "I'm experiencing high usage right now. Please try again in a moment."
@@ -310,7 +307,7 @@ class ChatBot:
             )
             title = response.text.strip()
 
-            # Clean up the title
+            
             title = re.sub(r'["\'.]', '', title)
             title = re.sub(r'^(Conversation about|Chat about|Topic:)\s*', '', title, flags=re.IGNORECASE)
             title = title.replace('"', '').strip()
