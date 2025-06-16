@@ -10,7 +10,7 @@ def _read_all_conversations() -> dict:
             try:
                 return json.load(f)
             except json.JSONDecodeError:
-                return {} # Return empty dict if file is corrupted or empty
+                return {} 
     return {}
 
 def _write_all_conversations(all_conversations: dict):
@@ -33,7 +33,7 @@ def load_conversation(conversation_name: str) -> tuple[list, dict]:
     conversation_data = all_conversations.get(conversation_name)
     if conversation_data:
         return conversation_data.get('history', []), conversation_data.get('user_profile', {})
-    return [], {} # Return empty if conversation name does not exist
+    return [], {} 
 
 def list_conversations() -> list[str]:
     
