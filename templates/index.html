@@ -1157,21 +1157,45 @@
 
       // New: Voice Input functionality
       voiceInputBtn.addEventListener('click', async () => {
+        // Feature detection for MediaDevices and MediaRecorder
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+            addSystemMessage("Audio input not supported by your browser.");
+            console.error("Browser does not support navigator.mediaDevices or MediaRecorder.");
+            return;
+        }
+
         if (!isRecording) {
           // Start recording
           try {
+            // Request microphone access
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+
+            // Detect supported mimeType for MediaRecorder
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm; codecs=opus') ? 'audio/webm; codecs=opus' : 'audio/webm';
+            
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+            
             mediaRecorder.ondataavailable = event => {
-              audioChunks.push(event.data);
+              if (event.data.size > 0) {
+                audioChunks.push(event.data);
+              }
             };
             mediaRecorder.onstop = async () => {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              // Create a Blob from the audio chunks using the determined mimeType
+              const audioBlob = new Blob(audioChunks, { type: mimeType });
               audioChunks = []; // Clear for next recording
+
+              // Check if the blob is empty before sending
+              if (audioBlob.size === 0) {
+                addSystemMessage("Recording too short or no audio detected. Please try again.");
+                console.warn("Empty audio blob, not sending for transcription.");
+                stream.getTracks().forEach(track => track.stop()); // Stop microphone stream
+                return;
+              }
 
               // Send to Whisper API
               const formData = new FormData();
-              formData.append("audio", audioBlob, "recording.wav");
+              formData.append("audio", audioBlob, "recording.webm"); // Use .webm extension
 
               addSystemMessage("Transcribing audio...");
               try {
@@ -1191,7 +1215,7 @@
                   console.error("Unknown transcription response:", data);
                 }
               } catch (error) {
-                addSystemMessage("Network error during transcription.");
+                addSystemMessage("Network error during transcription. Please check your connection.");
                 console.error("Network error during transcription:", error);
               }
               // Stop microphone stream (important for privacy)
@@ -1203,12 +1227,21 @@
             voiceInputBtn.classList.add('recording');
             addSystemMessage("Recording started... Say something!");
           } catch (error) {
-            addSystemMessage("Error accessing microphone: " + error.message);
+            // Handle different types of microphone access errors
+            if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+              addSystemMessage("Microphone access denied. Please allow microphone access in your browser settings.");
+            } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+              addSystemMessage("No microphone found. Please ensure a microphone is connected and enabled.");
+            } else {
+              addSystemMessage("Error accessing microphone: " + error.message);
+            }
             console.error("Microphone access error:", error);
           }
         } else {
           // Stop recording
-          mediaRecorder.stop();
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+          }
           isRecording = false;
           voiceInputBtn.classList.remove('recording');
           addSystemMessage("Recording stopped. Processing...");
