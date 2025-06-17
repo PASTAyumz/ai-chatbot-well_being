@@ -47,7 +47,6 @@ Create a `.env` file in the root directory of your project and add the following
 
 ```
 GEMINI_API_KEY="YOUR_GOOGLE_GEMINI_API_KEY"
-FLASK_SECRET_KEY="A_VERY_STRONG_RANDOM_SECRET_KEY_FOR_FLASK_SESSIONS"
 TWINWORD_API_KEY="YOUR_TWINWORD_RAPIDAPI_KEY"
 ```
 
@@ -99,8 +98,6 @@ This chatbot stands out as a wonderful companion due to its focus on **well-bein
 It's designed to be a supportive digital friend, available whenever needed, offering a judgment-free space to explore thoughts and feelings.
 
 ## Future Enhancements
-
--   **Persistent Database:** Migrate `Core/conversation_memory.json` to a proper database (e.g., PostgreSQL, MongoDB) for robust data persistence in deployed environments.
 -   **Mood Analysis Integration:** Enhance the chatbot with more sophisticated mood detection and tailored conversational flows based on user sentiment.
 -   **User Authentication:** Implement user accounts and login for more personalized experiences and potentially richer profile management.
 -   **Broader Well-being Tools:** Add more guided exercises, journaling features, or connections to external well-being resources.
@@ -116,10 +113,3 @@ It's designed to be a supportive digital friend, available whenever needed, offe
 -   **"I encountered an error: module 'google.api_core.exceptions' has no attribute 'BlockedPromptException'"**: Ensure `BlockedPromptException` is imported directly from `google.generativeai.types` in `Core/chatbot.py`.
 -   **Git Issues (merge conflicts, unable to push/pull)**: Follow standard Git conflict resolution. For stubborn issues, consider stashing local changes, performing a `git reset --hard origin/main`, reapplying the stash, and then pushing. Ensure `.gitignore` correctly lists `debug.log`, `Core/conversation_memory.json`, `Core/main_backup.py`, and `flask_session/`.
 
-## Contributing
-
-Contributions are welcome! If you have suggestions or improvements, please feel free to fork the repository and submit a pull request.
-
-## License
-
-This project is open-source and available under the [MIT License](LICENSE). 
