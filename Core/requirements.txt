@@ -8,3 +8,4 @@ textblob
 FlaskSpeechRecognition
 PyAudio
 python-dotenv
+flask
