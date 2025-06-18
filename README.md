@@ -14,6 +14,8 @@
 
 
 ## About This Project
+![Capture d'écran 2025-06-18 191235](https://github.com/user-attachments/assets/c7391af7-15f0-4417-9524-19d996953b38)
+
 
 The Well-being Companion Chatbot is an AI-powered conversational agent designed to provide emotional support and engage in meaningful interactions focused on mental and emotional well-being. Built with Flask for the web interface and leveraging Google's Gemini models, it offers a personalized and private chat experience.
 
