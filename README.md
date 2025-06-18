@@ -75,8 +75,6 @@ TWINWORD_API_KEY="YOUR_TWINWORD_RAPIDAPI_KEY"
     python web_app.py
     ```
 
-The application will typically run on `http://0.0.0.0:5000`. Open this address in your web browser.
-
 ## Usage
 
 -   **Chat:** Type your messages in the input box and press Enter or click the send button.
