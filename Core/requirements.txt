@@ -9,3 +9,4 @@ FlaskSpeechRecognition
 PyAudio
 python-dotenv
 flask
+gunicorn
