@@ -16,8 +16,12 @@
 ## About This Project
 ![Capture d'écran 2025-06-18 191235](https://github.com/user-attachments/assets/c7391af7-15f0-4417-9524-19d996953b38)
 
-Demo :
-https://youtu.be/o6HbclPU9xQ?feature=shared
+## 🎥 Demo Video
+
+[![Watch MOA Demo on YouTube](https://img.youtube.com/vi/o6HbclPU9xQ/0.jpg
+)](https://youtu.be/o6HbclPU9xQ?feature=shared)
+
+✨ Click the image to watch the calming AI chatbot in action!
 
 
 The Well-being Companion Chatbot is an AI-powered conversational agent designed to provide emotional support and engage in meaningful interactions focused on mental and emotional well-being. Built with Flask for the web interface and leveraging Google's Gemini models, it offers a personalized and private chat experience.
