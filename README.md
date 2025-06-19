@@ -14,7 +14,8 @@
 
 
 ## About This Project
-![Capture d'écran 2025-06-18 191235](https://github.com/user-attachments/assets/c7391af7-15f0-4417-9524-19d996953b38)
+![Capture d'écran 2025-06-18 193443](https://github.com/user-attachments/assets/b1143eec-cf9d-415d-b33c-059f6a64cfa1)
+
 
 ## 🎥 Demo Video
 
