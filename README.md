@@ -1,5 +1,5 @@
 # Well-being Companion Chatbot 
-🔗 Live demo: https://be28-102-99-244-38.ngrok-free.app
+🔗 Live demo:  https://96d3-102-99-244-38.ngrok-free.app/
 (Running from my machine — please try it within the next few hours!)
 ⚠️ Heads up!
 This is a temporary ngrok link to my personal Flask app, shared for demo purposes.
