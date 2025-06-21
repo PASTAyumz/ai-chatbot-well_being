@@ -1,12 +1,4 @@
 # Well-being Companion Chatbot 
-🔗 Live demo:  https://96d3-102-99-244-38.ngrok-free.app/
-(Running from my machine — please try it within the next few hours!)
-⚠️ Heads up!
-This is a temporary ngrok link to my personal Flask app, shared for demo purposes.
-Ngrok shows a “you’re responsible” warning on all links — this is normal and not a sign of danger.
-
-✅ The link is safe. It hosts my MOA well-being chatbot only.
-❌ No downloads, no ads, no tracking — just a friendly AI you can talk to.
 
 ## Table of Contents
 - [About This Project](#about-this-project)
