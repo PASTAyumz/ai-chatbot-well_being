@@ -1,5 +1,6 @@
 # Well-being Companion Chatbot 
-
+🌿 Live Demo: https://e753-196-122-218-177.ngrok-free.app
+Safe to visit ✅ — no ads, no tracking, no installs. Hosted with ngrok (secure developer tool).
 ## Table of Contents
 - [About This Project](#about-this-project)
 - [Features](#features)
